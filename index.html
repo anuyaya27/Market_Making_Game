@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Market Making Game</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --ink: #18202f;
+      --muted: #667085;
+      --line: #d7dde8;
+      --accent: #0b6bcb;
+      --accent-dark: #084f96;
+      --danger: #b42318;
+      --success: #067647;
+      --warning: #b54708;
+      --shadow: 0 8px 24px rgba(28, 39, 60, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.45;
+    }
+
+    header {
+      background: #18202f;
+      color: #ffffff;
+      padding: 22px 24px;
+      border-bottom: 4px solid var(--accent);
+    }
+
+    header h1 {
+      margin: 0 0 6px;
+      font-size: clamp(1.6rem, 3vw, 2.4rem);
+      letter-spacing: 0;
+    }
+
+    header p {
+      max-width: 900px;
+      margin: 0;
+      color: #d8deea;
+    }
+
+    main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 24px auto 40px;
+      display: grid;
+      grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    section,
+    aside {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .panel {
+      padding: 18px;
+    }
+
+    .stack {
+      display: grid;
+      gap: 18px;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 1.05rem;
+    }
+
+    label {
+      display: block;
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    input,
+    select,
+    button {
+      width: 100%;
+      min-height: 42px;
+      border-radius: 6px;
+      font: inherit;
+    }
+
+    input,
+    select {
+      border: 1px solid #bcc6d6;
+      padding: 9px 10px;
+      color: var(--ink);
+      background: #ffffff;
+    }
+
+    button {
+      border: 0;
+      padding: 10px 14px;
+      color: #ffffff;
+      background: var(--accent);
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: var(--accent-dark);
+    }
+
+    button.secondary {
+      color: var(--accent);
+      background: #e9f2ff;
+      border: 1px solid #acd0f8;
+    }
+
+    button.secondary:hover {
+      background: #d8eaff;
+    }
+
+    button:disabled,
+    input:disabled,
+    select:disabled {
+      cursor: not-allowed;
+      opacity: 0.62;
+    }
+
+    .grid-two {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .grid-three {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .quote-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) minmax(130px, 0.8fr);
+      gap: 12px;
+      align-items: end;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .metric {
+      min-height: 74px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #fbfcff;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 1.22rem;
+      word-break: break-word;
+    }
+
+    .mode-badge {
+      display: inline-flex;
+      align-items: center;
+      max-width: 100%;
+      min-height: 30px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: #eef4ff;
+      color: #1849a9;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    .message {
+      min-height: 42px;
+      border-radius: 8px;
+      padding: 10px 12px;
+      background: #edf3fb;
+      color: #344054;
+      border: 1px solid #c8d7eb;
+    }
+
+    .message.error {
+      background: #fef3f2;
+      color: var(--danger);
+      border-color: #fecdca;
+    }
+
+    .message.good {
+      background: #ecfdf3;
+      color: var(--success);
+      border-color: #abefc6;
+    }
+
+    .message.warn {
+      background: #fffaeb;
+      color: var(--warning);
+      border-color: #fedf89;
+    }
+
+    .quote-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .pill {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px 10px;
+      color: #344054;
+      background: #ffffff;
+      font-size: 0.9rem;
+    }
+
+    .round-result {
+      display: none;
+      border: 1px solid #acd0f8;
+      border-radius: 8px;
+      background: #f1f7ff;
+      padding: 14px;
+    }
+
+    .round-result.visible {
+      display: block;
+    }
+
+    .log {
+      max-height: 420px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 720px;
+      font-size: 0.92rem;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: 9px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      background: #eef2f7;
+      color: #344054;
+      z-index: 1;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .empty-log {
+      padding: 18px;
+      color: var(--muted);
+    }
+
+    .profit {
+      color: var(--success);
+    }
+
+    .loss {
+      color: var(--danger);
+    }
+
+    @media (max-width: 880px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+
+      .quote-row,
+      .metric-grid,
+      .grid-three {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 560px) {
+      main {
+        width: min(100% - 20px, 1180px);
+      }
+
+      header {
+        padding: 18px 14px;
+      }
+
+      .panel {
+        padding: 14px;
+      }
+
+      .grid-two {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Market Making Game</h1>
+    <p>Quote a bid and ask, manage inventory, and learn how different counterparties punish loose markets.</p>
+  </header>
+
+  <main>
+    <aside class="stack">
+      <section class="panel">
+        <h2>Round Settings</h2>
+        <div class="grid-two">
+          <div>
+            <label for="valueModel">True value model</label>
+            <select id="valueModel">
+              <option value="range">Random integer range</option>
+              <option value="dice">Sum of two dice</option>
+            </select>
+          </div>
+          <div>
+            <label for="mode">Counterparty mode</label>
+            <select id="mode">
+              <option value="noisy">Noisy threshold</option>
+              <option value="adversarial">Adversarial informed</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="rangeSettings" class="grid-two" style="margin-top: 12px;">
+          <div>
+            <label for="minValue">Min true value</label>
+            <input id="minValue" type="number" min="-10000" max="10000" step="1" value="1">
+          </div>
+          <div>
+            <label for="maxValue">Max true value</label>
+            <input id="maxValue" type="number" min="-10000" max="10000" step="1" value="100">
+          </div>
+        </div>
+
+        <div id="diceSettings" class="grid-two" style="margin-top: 12px; display: none;">
+          <div>
+            <label for="diceCount">Dice count</label>
+            <input id="diceCount" type="number" min="1" max="20" step="1" value="2">
+          </div>
+          <div>
+            <label for="diceSides">Sides per die</label>
+            <input id="diceSides" type="number" min="2" max="100" step="1" value="6">
+          </div>
+        </div>
+
+        <div class="grid-two" style="margin-top: 12px;">
+          <div>
+            <label for="turnLimit">Turns per round</label>
+            <input id="turnLimit" type="number" min="1" max="100" step="1" value="10">
+          </div>
+          <div>
+            <label for="positionLimit">Position limit (+/-)</label>
+            <input id="positionLimit" type="number" min="1" max="100" step="1" value="10">
+          </div>
+        </div>
+
+        <button id="newRoundButton" style="margin-top: 14px;">Start New Round</button>
+      </section>
+
+      <section class="panel">
+        <h2>Quote</h2>
+        <div class="quote-row">
+          <div>
+            <label for="bidInput">Bid</label>
+            <input id="bidInput" type="number" step="0.01" value="45">
+          </div>
+          <div>
+            <label for="askInput">Ask</label>
+            <input id="askInput" type="number" step="0.01" value="55">
+          </div>
+          <button id="submitQuoteButton">Submit Quote</button>
+        </div>
+
+        <div class="quote-stats">
+          <span class="pill">Spread: <strong id="spreadPreview">10.00</strong></span>
+          <span class="pill">Mid: <strong id="midPreview">50.00</strong></span>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Status</h2>
+        <div id="message" class="message">Start a round, then submit a two-sided market.</div>
+      </section>
+    </aside>
+
+    <section class="panel stack">
+      <div>
+        <h2>Risk And P&L</h2>
+        <div style="margin-bottom: 12px;">
+          <span id="activeModeBadge" class="mode-badge">Mode: Noisy threshold</span>
+        </div>
+        <div class="metric-grid">
+          <div class="metric">
+            <span>Turn</span>
+            <strong id="turnCounter">0 / 10</strong>
+          </div>
+          <div class="metric">
+            <span>Inventory</span>
+            <strong id="inventory">0</strong>
+          </div>
+          <div class="metric">
+            <span>Position limits</span>
+            <strong id="limits">-10 / +10</strong>
+          </div>
+          <div class="metric">
+            <span>Average entry</span>
+            <strong id="avgEntry">-</strong>
+          </div>
+          <div class="metric">
+            <span>Cash</span>
+            <strong id="cash">0.00</strong>
+          </div>
+          <div class="metric">
+            <span>Realized P&L</span>
+            <strong id="realizedPnl">0.00</strong>
+          </div>
+          <div class="metric">
+            <span>Unrealized P&L</span>
+            <strong id="unrealizedPnl">Hidden</strong>
+          </div>
+          <div class="metric">
+            <span>True value</span>
+            <strong id="trueValue">Hidden</strong>
+          </div>
+          <div class="metric">
+            <span>Total marked P&L</span>
+            <strong id="totalPnl">Hidden</strong>
+          </div>
+        </div>
+      </div>
+
+      <div id="roundResult" class="round-result">
+        <h2>Round Breakdown</h2>
+        <div class="grid-three">
+          <div class="metric">
+            <span>True value</span>
+            <strong id="breakTrueValue">-</strong>
+          </div>
+          <div class="metric">
+            <span>Final inventory</span>
+            <strong id="breakInventory">0</strong>
+          </div>
+          <div class="metric">
+            <span>Marked value</span>
+            <strong id="breakMarkedValue">0.00</strong>
+          </div>
+          <div class="metric">
+            <span>Final cash</span>
+            <strong id="breakCash">0.00</strong>
+          </div>
+          <div class="metric">
+            <span>Realized P&L</span>
+            <strong id="breakRealized">0.00</strong>
+          </div>
+          <div class="metric">
+            <span>Total P&L</span>
+            <strong id="breakTotal">0.00</strong>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h2>Turn Log</h2>
+        <div class="log" id="logWrap">
+          <div class="empty-log">No turns yet.</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    "use strict";
+
+    const MODE_LABELS = {
+      noisy: "Noisy threshold",
+      adversarial: "Adversarial informed"
+    };
+
+    const ACTION_LABELS = {
+      hitBid: "Trader hit bid",
+      liftAsk: "Trader lifted ask",
+      pass: "Trader passed",
+      blocked: "Trade blocked"
+    };
+
+    // Central game-state object. Most values are reset by startNewRound().
+    const gameState = {
+      active: false,
+      ended: false,
+      trueValue: null,
+      turn: 0,
+      turnLimit: 10,
+      mode: "noisy",
+      valueModel: "range",
+      minValue: 1,
+      maxValue: 100,
+      diceCount: 2,
+      diceSides: 6,
+      positionLimit: 10,
+      position: 0,
+      avgEntry: 0,
+      cash: 0,
+      realizedPnl: 0,
+      lastBid: null,
+      lastAsk: null,
+      log: []
+    };
+
+    const els = {
+      valueModel: document.getElementById("valueModel"),
+      mode: document.getElementById("mode"),
+      minValue: document.getElementById("minValue"),
+      maxValue: document.getElementById("maxValue"),
+      diceCount: document.getElementById("diceCount"),
+      diceSides: document.getElementById("diceSides"),
+      turnLimit: document.getElementById("turnLimit"),
+      positionLimit: document.getElementById("positionLimit"),
+      rangeSettings: document.getElementById("rangeSettings"),
+      diceSettings: document.getElementById("diceSettings"),
+      newRoundButton: document.getElementById("newRoundButton"),
+      bidInput: document.getElementById("bidInput"),
+      askInput: document.getElementById("askInput"),
+      submitQuoteButton: document.getElementById("submitQuoteButton"),
+      spreadPreview: document.getElementById("spreadPreview"),
+      midPreview: document.getElementById("midPreview"),
+      message: document.getElementById("message"),
+      activeModeBadge: document.getElementById("activeModeBadge"),
+      turnCounter: document.getElementById("turnCounter"),
+      inventory: document.getElementById("inventory"),
+      limits: document.getElementById("limits"),
+      avgEntry: document.getElementById("avgEntry"),
+      cash: document.getElementById("cash"),
+      realizedPnl: document.getElementById("realizedPnl"),
+      unrealizedPnl: document.getElementById("unrealizedPnl"),
+      trueValue: document.getElementById("trueValue"),
+      totalPnl: document.getElementById("totalPnl"),
+      roundResult: document.getElementById("roundResult"),
+      breakTrueValue: document.getElementById("breakTrueValue"),
+      breakInventory: document.getElementById("breakInventory"),
+      breakMarkedValue: document.getElementById("breakMarkedValue"),
+      breakCash: document.getElementById("breakCash"),
+      breakRealized: document.getElementById("breakRealized"),
+      breakTotal: document.getElementById("breakTotal"),
+      logWrap: document.getElementById("logWrap")
+    };
+
+    function money(value) {
+      return Number(value).toFixed(2);
+    }
+
+    function signedClass(value) {
+      if (value > 0) return "profit";
+      if (value < 0) return "loss";
+      return "";
+    }
+
+    function setMessage(text, type) {
+      els.message.textContent = text;
+      els.message.className = "message" + (type ? " " + type : "");
+    }
+
+    function readInteger(input, fallback) {
+      const value = Number.parseInt(input.value, 10);
+      return Number.isFinite(value) ? value : fallback;
+    }
+
+    function readNumber(input) {
+      return Number.parseFloat(input.value);
+    }
+
+    function drawTrueValue() {
+      if (gameState.valueModel === "dice") {
+        let total = 0;
+        for (let i = 0; i < gameState.diceCount; i += 1) {
+          total += 1 + Math.floor(Math.random() * gameState.diceSides);
+        }
+        return total;
+      }
+
+      const min = Math.ceil(gameState.minValue);
+      const max = Math.floor(gameState.maxValue);
+      return min + Math.floor(Math.random() * (max - min + 1));
+    }
+
+    function validateSettings() {
+      const valueModel = els.valueModel.value;
+      const minValue = readInteger(els.minValue, 1);
+      const maxValue = readInteger(els.maxValue, 100);
+      const diceCount = readInteger(els.diceCount, 2);
+      const diceSides = readInteger(els.diceSides, 6);
+      const turnLimit = readInteger(els.turnLimit, 10);
+      const positionLimit = readInteger(els.positionLimit, 10);
+
+      if (valueModel === "range" && maxValue <= minValue) {
+        return { ok: false, message: "Max true value must be greater than min true value." };
+      }
+
+      if (valueModel === "dice" && (diceCount < 1 || diceSides < 2)) {
+        return { ok: false, message: "Dice mode needs at least 1 die with at least 2 sides." };
+      }
+
+      if (turnLimit < 1) {
+        return { ok: false, message: "Turns per round must be at least 1." };
+      }
+
+      if (positionLimit < 1) {
+        return { ok: false, message: "Position limit must be at least 1." };
+      }
+
+      return {
+        ok: true,
+        settings: {
+          valueModel,
+          minValue,
+          maxValue,
+          diceCount,
+          diceSides,
+          turnLimit,
+          positionLimit,
+          mode: els.mode.value
+        }
+      };
+    }
+
+    function startNewRound() {
+      const validation = validateSettings();
+      if (!validation.ok) {
+        setMessage(validation.message, "error");
+        return;
+      }
+
+      Object.assign(gameState, validation.settings, {
+        active: true,
+        ended: false,
+        trueValue: null,
+        turn: 0,
+        position: 0,
+        avgEntry: 0,
+        cash: 0,
+        realizedPnl: 0,
+        lastBid: null,
+        lastAsk: null,
+        log: []
+      });
+
+      gameState.trueValue = drawTrueValue();
+      setSettingsDisabled(true);
+      setMessage("New round started. True value is hidden until the round ends.", "good");
+      render();
+    }
+
+    function setSettingsDisabled(disabled) {
+      els.valueModel.disabled = disabled;
+      els.mode.disabled = disabled;
+      els.minValue.disabled = disabled;
+      els.maxValue.disabled = disabled;
+      els.diceCount.disabled = disabled;
+      els.diceSides.disabled = disabled;
+      els.turnLimit.disabled = disabled;
+      els.positionLimit.disabled = disabled;
+    }
+
+    // Single counterparty decision function. Add new modes by branching on mode.
+    function decideCounterpartyAction(mode, bid, ask, trueValue) {
+      if (mode === "adversarial") {
+        if (ask < trueValue) return { action: "liftAsk", reason: "ask below true value" };
+        if (bid > trueValue) return { action: "hitBid", reason: "bid above true value" };
+        return { action: "pass", reason: "quote brackets true value" };
+      }
+
+      if (mode === "noisy") {
+        const quoteIsLow = ask < trueValue;
+        const quoteIsHigh = bid > trueValue;
+        const bracketsValue = bid <= trueValue && ask >= trueValue;
+        const roll = Math.random();
+
+        if (quoteIsLow) {
+          return roll < 0.85
+            ? { action: "liftAsk", reason: "ask looks cheap" }
+            : { action: "pass", reason: "noise" };
+        }
+
+        if (quoteIsHigh) {
+          return roll < 0.85
+            ? { action: "hitBid", reason: "bid looks rich" }
+            : { action: "pass", reason: "noise" };
+        }
+
+        if (bracketsValue) {
+          if (roll < 0.10) return { action: "liftAsk", reason: "noise" };
+          if (roll < 0.20) return { action: "hitBid", reason: "noise" };
+          return { action: "pass", reason: "quote brackets likely value" };
+        }
+      }
+
+      return { action: "pass", reason: "unknown mode fallback" };
+    }
+
+    function canApplyAction(action) {
+      if (action === "hitBid" && gameState.position + 1 > gameState.positionLimit) {
+        return { ok: false, message: "Long limit would be breached." };
+      }
+
+      if (action === "liftAsk" && gameState.position - 1 < -gameState.positionLimit) {
+        return { ok: false, message: "Short limit would be breached." };
+      }
+
+      return { ok: true };
+    }
+
+    function applyTrade(action, price) {
+      if (action === "hitBid") {
+        gameState.cash -= price;
+
+        if (gameState.position >= 0) {
+          const newPosition = gameState.position + 1;
+          gameState.avgEntry = ((gameState.avgEntry * gameState.position) + price) / newPosition;
+          gameState.position = newPosition;
+        } else {
+          gameState.realizedPnl += gameState.avgEntry - price;
+          gameState.position += 1;
+          if (gameState.position === 0) gameState.avgEntry = 0;
+        }
+      }
+
+      if (action === "liftAsk") {
+        gameState.cash += price;
+
+        if (gameState.position <= 0) {
+          const oldSize = Math.abs(gameState.position);
+          const newSize = oldSize + 1;
+          gameState.avgEntry = ((gameState.avgEntry * oldSize) + price) / newSize;
+          gameState.position -= 1;
+        } else {
+          gameState.realizedPnl += price - gameState.avgEntry;
+          gameState.position -= 1;
+          if (gameState.position === 0) gameState.avgEntry = 0;
+        }
+      }
+    }
+
+    function submitQuote() {
+      if (!gameState.active || gameState.ended) {
+        setMessage("Start a new round before submitting quotes.", "warn");
+        return;
+      }
+
+      const bid = readNumber(els.bidInput);
+      const ask = readNumber(els.askInput);
+
+      if (!Number.isFinite(bid) || !Number.isFinite(ask)) {
+        setMessage("Enter numeric bid and ask values.", "error");
+        return;
+      }
+
+      if (ask <= bid) {
+        setMessage("Rejected: ask must be greater than bid. Crossed or inverted quotes are not allowed.", "error");
+        return;
+      }
+
+      gameState.lastBid = bid;
+      gameState.lastAsk = ask;
+
+      const decision = decideCounterpartyAction(gameState.mode, bid, ask, gameState.trueValue);
+      let action = decision.action;
+      let fillPrice = null;
+      let note = decision.reason;
+
+      if (action !== "pass") {
+        const limitCheck = canApplyAction(action);
+        if (!limitCheck.ok) {
+          note = limitCheck.message;
+          action = "blocked";
+        } else {
+          fillPrice = action === "hitBid" ? bid : ask;
+          applyTrade(action, fillPrice);
+        }
+      }
+
+      gameState.turn += 1;
+      gameState.log.unshift({
+        turn: gameState.turn,
+        bid,
+        ask,
+        spread: ask - bid,
+        mid: (bid + ask) / 2,
+        action,
+        fillPrice,
+        position: gameState.position,
+        cash: gameState.cash,
+        note
+      });
+
+      if (gameState.turn >= gameState.turnLimit) {
+        endRound();
+      } else {
+        setMessage(buildTurnMessage(action, fillPrice, note), action === "blocked" ? "warn" : "");
+      }
+
+      render();
+    }
+
+    function buildTurnMessage(action, fillPrice, note) {
+      if (action === "pass") return "Trader passed: " + note + ".";
+      if (action === "blocked") return "Trade blocked by position limits: " + note;
+      return ACTION_LABELS[action] + " at " + money(fillPrice) + ": " + note + ".";
+    }
+
+    function endRound() {
+      gameState.active = false;
+      gameState.ended = true;
+      setSettingsDisabled(false);
+      setMessage("Round complete. True value and marked P&L are now revealed.", "good");
+    }
+
+    function getUnrealizedPnl() {
+      if (gameState.position > 0) {
+        return (gameState.trueValue - gameState.avgEntry) * gameState.position;
+      }
+
+      if (gameState.position < 0) {
+        return (gameState.avgEntry - gameState.trueValue) * Math.abs(gameState.position);
+      }
+
+      return 0;
+    }
+
+    function getTotalMarkedPnl() {
+      return gameState.cash + (gameState.position * gameState.trueValue);
+    }
+
+    function updateQuotePreview() {
+      const bid = readNumber(els.bidInput);
+      const ask = readNumber(els.askInput);
+
+      if (!Number.isFinite(bid) || !Number.isFinite(ask) || ask <= bid) {
+        els.spreadPreview.textContent = "-";
+        els.midPreview.textContent = "-";
+        return;
+      }
+
+      els.spreadPreview.textContent = money(ask - bid);
+      els.midPreview.textContent = money((bid + ask) / 2);
+    }
+
+    function render() {
+      const roundIsRevealed = gameState.ended;
+      const unrealized = gameState.trueValue === null ? 0 : getUnrealizedPnl();
+      const totalMarked = gameState.trueValue === null ? 0 : getTotalMarkedPnl();
+      const markedValue = gameState.trueValue === null ? 0 : gameState.position * gameState.trueValue;
+
+      els.activeModeBadge.textContent = "Mode: " + MODE_LABELS[gameState.mode];
+      els.turnCounter.textContent = gameState.turn + " / " + gameState.turnLimit;
+      els.inventory.textContent = String(gameState.position);
+      els.limits.textContent = "-" + gameState.positionLimit + " / +" + gameState.positionLimit;
+      els.avgEntry.textContent = gameState.position === 0 ? "-" : money(gameState.avgEntry);
+      els.cash.textContent = money(gameState.cash);
+      els.cash.className = signedClass(gameState.cash);
+      els.realizedPnl.textContent = money(gameState.realizedPnl);
+      els.realizedPnl.className = signedClass(gameState.realizedPnl);
+      els.unrealizedPnl.textContent = roundIsRevealed ? money(unrealized) : "Hidden";
+      els.unrealizedPnl.className = roundIsRevealed ? signedClass(unrealized) : "";
+      els.trueValue.textContent = roundIsRevealed ? String(gameState.trueValue) : "Hidden";
+      els.totalPnl.textContent = roundIsRevealed ? money(totalMarked) : "Hidden";
+      els.totalPnl.className = roundIsRevealed ? signedClass(totalMarked) : "";
+
+      els.submitQuoteButton.disabled = !gameState.active || gameState.ended;
+      els.newRoundButton.textContent = gameState.active ? "Restart Round" : "Start New Round";
+
+      els.roundResult.classList.toggle("visible", roundIsRevealed);
+      els.breakTrueValue.textContent = roundIsRevealed ? String(gameState.trueValue) : "-";
+      els.breakInventory.textContent = String(gameState.position);
+      els.breakMarkedValue.textContent = money(markedValue);
+      els.breakCash.textContent = money(gameState.cash);
+      els.breakRealized.textContent = money(gameState.realizedPnl);
+      els.breakRealized.className = signedClass(gameState.realizedPnl);
+      els.breakTotal.textContent = money(totalMarked);
+      els.breakTotal.className = signedClass(totalMarked);
+
+      renderLog();
+      updateQuotePreview();
+    }
+
+    function renderLog() {
+      if (gameState.log.length === 0) {
+        els.logWrap.innerHTML = '<div class="empty-log">No turns yet.</div>';
+        return;
+      }
+
+      const rows = gameState.log.map((entry) => {
+        const fill = entry.fillPrice === null ? "-" : money(entry.fillPrice);
+        return [
+          "<tr>",
+          "<td>" + entry.turn + "</td>",
+          "<td>" + money(entry.bid) + " / " + money(entry.ask) + "</td>",
+          "<td>" + money(entry.spread) + "</td>",
+          "<td>" + money(entry.mid) + "</td>",
+          "<td>" + ACTION_LABELS[entry.action] + "</td>",
+          "<td>" + fill + "</td>",
+          "<td>" + entry.position + "</td>",
+          "<td>" + money(entry.cash) + "</td>",
+          "<td>" + entry.note + "</td>",
+          "</tr>"
+        ].join("");
+      }).join("");
+
+      els.logWrap.innerHTML = [
+        "<table>",
+        "<thead>",
+        "<tr>",
+        "<th>Turn</th>",
+        "<th>Quote</th>",
+        "<th>Spread</th>",
+        "<th>Mid</th>",
+        "<th>Action</th>",
+        "<th>Fill</th>",
+        "<th>Position</th>",
+        "<th>Cash</th>",
+        "<th>Note</th>",
+        "</tr>",
+        "</thead>",
+        "<tbody>",
+        rows,
+        "</tbody>",
+        "</table>"
+      ].join("");
+    }
+
+    function syncValueModelControls() {
+      const diceMode = els.valueModel.value === "dice";
+      els.rangeSettings.style.display = diceMode ? "none" : "grid";
+      els.diceSettings.style.display = diceMode ? "grid" : "none";
+    }
+
+    els.newRoundButton.addEventListener("click", startNewRound);
+    els.submitQuoteButton.addEventListener("click", submitQuote);
+    els.bidInput.addEventListener("input", updateQuotePreview);
+    els.askInput.addEventListener("input", updateQuotePreview);
+    els.valueModel.addEventListener("change", syncValueModelControls);
+
+    syncValueModelControls();
+    render();
+  </script>
+</body>
+</html>
