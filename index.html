@@ -3,977 +3,962 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Market Making Game</title>
+  <title>Fermi Market Making Game</title>
   <style>
     :root {
-      --bg: #f5f7fb;
-      --panel: #ffffff;
-      --ink: #18202f;
-      --muted: #667085;
-      --line: #d7dde8;
-      --accent: #0b6bcb;
-      --accent-dark: #084f96;
-      --danger: #b42318;
-      --success: #067647;
-      --warning: #b54708;
-      --shadow: 0 8px 24px rgba(28, 39, 60, 0.08);
+      --bg: #07111f;
+      --panel: #0f1e33;
+      --panel-2: #13263f;
+      --line: #233b5c;
+      --line-2: #315078;
+      --text: #f6f8fb;
+      --muted: #9fb0c7;
+      --blue: #2f80ed;
+      --blue-2: #1b63c4;
+      --green: #21a67a;
+      --green-2: #17815e;
+      --red: #ff6b6b;
+      --yellow: #f4c430;
+      --shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      background: var(--bg);
-      color: var(--ink);
-      font-family: Arial, Helvetica, sans-serif;
+      background: radial-gradient(circle at top left, #0d2440 0, var(--bg) 36rem);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       line-height: 1.45;
     }
 
     header {
-      background: #18202f;
-      color: #ffffff;
-      padding: 22px 24px;
-      border-bottom: 4px solid var(--accent);
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 18px;
     }
 
-    header h1 {
-      margin: 0 0 6px;
-      font-size: clamp(1.6rem, 3vw, 2.4rem);
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1 {
+      margin-bottom: 8px;
+      font-size: clamp(1.8rem, 4vw, 3rem);
       letter-spacing: 0;
     }
 
-    header p {
-      max-width: 900px;
-      margin: 0;
-      color: #d8deea;
-    }
+    h2 { margin-bottom: 16px; font-size: 1.25rem; }
+    h3 { margin-bottom: 8px; font-size: 1rem; }
+
+    p, .muted { color: var(--muted); }
 
     main {
       width: min(1180px, calc(100% - 32px));
-      margin: 24px auto 40px;
-      display: grid;
-      grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
-      gap: 18px;
-      align-items: start;
+      margin: 0 auto 42px;
     }
 
-    section,
-    aside {
-      background: var(--panel);
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    .card {
+      background: linear-gradient(180deg, var(--panel) 0%, #0b192c 100%);
       border: 1px solid var(--line);
-      border-radius: 8px;
+      border-radius: 14px;
       box-shadow: var(--shadow);
+      padding: 20px;
     }
 
-    .panel {
-      padding: 18px;
-    }
-
-    .stack {
+    .grid {
       display: grid;
-      gap: 18px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
     }
 
-    h2 {
-      margin: 0 0 14px;
-      font-size: 1.05rem;
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .scenario-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
     }
 
     label {
       display: block;
       color: var(--muted);
-      font-size: 0.88rem;
+      font-size: 0.84rem;
       font-weight: 700;
       margin-bottom: 6px;
     }
 
-    input,
-    select,
-    button {
+    input, select, textarea, button {
       width: 100%;
-      min-height: 42px;
-      border-radius: 6px;
+      border-radius: 9px;
       font: inherit;
     }
 
-    input,
-    select {
-      border: 1px solid #bcc6d6;
-      padding: 9px 10px;
-      color: var(--ink);
-      background: #ffffff;
+    input, select, textarea {
+      border: 1px solid var(--line-2);
+      background: #09182a;
+      color: var(--text);
+      padding: 10px 12px;
+      min-height: 44px;
     }
+
+    textarea { min-height: 120px; resize: vertical; }
 
     button {
       border: 0;
+      min-height: 44px;
       padding: 10px 14px;
-      color: #ffffff;
-      background: var(--accent);
-      font-weight: 700;
+      color: white;
+      background: var(--blue);
+      font-weight: 800;
       cursor: pointer;
     }
 
-    button:hover {
-      background: var(--accent-dark);
+    button:hover { background: var(--blue-2); }
+    button:disabled { cursor: not-allowed; opacity: 0.58; }
+    button.secondary { background: #162b48; border: 1px solid var(--line-2); }
+    button.secondary:hover { background: #1d385d; }
+    button.hint { background: var(--green); }
+    button.hint:hover { background: var(--green-2); }
+
+    .scenario-button {
+      min-height: 110px;
+      text-align: left;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-start;
+      justify-content: space-between;
     }
 
-    button.secondary {
-      color: var(--accent);
-      background: #e9f2ff;
-      border: 1px solid #acd0f8;
+    .scenario-button:hover,
+    .scenario-button.selected {
+      border-color: var(--blue);
+      background: #153058;
     }
 
-    button.secondary:hover {
-      background: #d8eaff;
+    .scenario-button span {
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 600;
     }
 
-    button:disabled,
-    input:disabled,
-    select:disabled {
-      cursor: not-allowed;
-      opacity: 0.62;
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 16px;
     }
 
-    .grid-two {
+    .row {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-    }
-
-    .grid-three {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
-    }
-
-    .quote-row {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr)) minmax(130px, 0.8fr);
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 12px;
       align-items: end;
     }
 
-    .metric-grid {
+    .split {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 10px;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 16px;
+      align-items: start;
     }
 
     .metric {
-      min-height: 74px;
+      background: #09182a;
       border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 10px;
-      background: #fbfcff;
+      border-radius: 10px;
+      padding: 12px;
+      min-height: 78px;
     }
 
     .metric span {
       display: block;
       color: var(--muted);
       font-size: 0.78rem;
-      font-weight: 700;
+      font-weight: 800;
       margin-bottom: 5px;
     }
 
     .metric strong {
       display: block;
-      font-size: 1.22rem;
-      word-break: break-word;
-    }
-
-    .mode-badge {
-      display: inline-flex;
-      align-items: center;
-      max-width: 100%;
-      min-height: 30px;
-      padding: 5px 9px;
-      border-radius: 999px;
-      background: #eef4ff;
-      color: #1849a9;
-      font-size: 0.85rem;
-      font-weight: 700;
+      font-size: 1.2rem;
+      overflow-wrap: anywhere;
     }
 
     .message {
-      min-height: 42px;
-      border-radius: 8px;
-      padding: 10px 12px;
-      background: #edf3fb;
-      color: #344054;
-      border: 1px solid #c8d7eb;
+      border: 1px solid var(--line-2);
+      background: #0b1f37;
+      color: var(--muted);
+      border-radius: 10px;
+      padding: 12px;
+      margin-top: 14px;
     }
 
-    .message.error {
-      background: #fef3f2;
-      color: var(--danger);
-      border-color: #fecdca;
-    }
-
-    .message.good {
-      background: #ecfdf3;
-      color: var(--success);
-      border-color: #abefc6;
-    }
-
-    .message.warn {
-      background: #fffaeb;
-      color: var(--warning);
-      border-color: #fedf89;
-    }
-
-    .quote-stats {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 12px;
-    }
+    .message.error { border-color: #8f3232; color: #ffd0d0; background: #351521; }
+    .message.good { border-color: #1f815f; color: #d8ffee; background: #0b2a25; }
+    .message.warn { border-color: #846816; color: #fff1bd; background: #302810; }
 
     .pill {
-      border: 1px solid var(--line);
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 5px 10px;
+      border: 1px solid var(--line-2);
       border-radius: 999px;
-      padding: 6px 10px;
-      color: #344054;
-      background: #ffffff;
-      font-size: 0.9rem;
+      color: #dce8f8;
+      background: #0b1f37;
+      font-size: 0.88rem;
+      font-weight: 800;
     }
 
-    .round-result {
-      display: none;
-      border: 1px solid #acd0f8;
-      border-radius: 8px;
-      background: #f1f7ff;
-      padding: 14px;
+    .question {
+      font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+      color: var(--text);
+      margin-bottom: 8px;
     }
 
-    .round-result.visible {
-      display: block;
-    }
-
-    .log {
-      max-height: 420px;
-      overflow: auto;
+    .hint-box, .log {
       border: 1px solid var(--line);
-      border-radius: 8px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 720px;
-      font-size: 0.92rem;
-    }
-
-    th,
-    td {
-      border-bottom: 1px solid var(--line);
-      padding: 9px 10px;
-      text-align: left;
-      vertical-align: top;
-    }
-
-    th {
-      position: sticky;
-      top: 0;
-      background: #eef2f7;
-      color: #344054;
-      z-index: 1;
-    }
-
-    tr:last-child td {
-      border-bottom: 0;
-    }
-
-    .empty-log {
-      padding: 18px;
+      border-radius: 10px;
+      background: #09182a;
+      padding: 12px;
       color: var(--muted);
     }
 
-    .profit {
-      color: var(--success);
+    .log {
+      max-height: 280px;
+      overflow: auto;
+      display: grid;
+      gap: 10px;
     }
 
-    .loss {
-      color: var(--danger);
+    .log-entry {
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 10px;
     }
 
-    @media (max-width: 880px) {
-      main {
-        grid-template-columns: 1fr;
-      }
+    .log-entry:last-child { border-bottom: 0; padding-bottom: 0; }
+    .profit { color: #7ee3b5; }
+    .loss { color: var(--red); }
+    .yellow { color: var(--yellow); }
 
-      .quote-row,
-      .metric-grid,
-      .grid-three {
-        grid-template-columns: 1fr;
-      }
+    @media (max-width: 980px) {
+      .scenario-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .split { grid-template-columns: 1fr; }
+      .row, .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
-    @media (max-width: 560px) {
-      main {
-        width: min(100% - 20px, 1180px);
-      }
-
-      header {
-        padding: 18px 14px;
-      }
-
-      .panel {
-        padding: 14px;
-      }
-
-      .grid-two {
-        grid-template-columns: 1fr;
-      }
+    @media (max-width: 640px) {
+      header, main { width: min(100% - 20px, 1180px); }
+      .grid, .grid-3, .row, .scenario-grid { grid-template-columns: 1fr; }
+      .card { padding: 15px; }
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>Market Making Game</h1>
-    <p>Quote a bid and ask, manage inventory, and learn how different counterparties punish loose markets.</p>
+    <h1>Fermi Market Making</h1>
+    <p>Practice interview-style guesstimate markets, inventory management, and debrief math with deterministic trading and hidden true values.</p>
   </header>
 
   <main>
-    <aside class="stack">
-      <section class="panel">
-        <h2>Round Settings</h2>
-        <div class="grid-two">
-          <div>
-            <label for="valueModel">True value model</label>
-            <select id="valueModel">
-              <option value="range">Random integer range</option>
-              <option value="dice">Sum of two dice</option>
-            </select>
-          </div>
-          <div>
-            <label for="mode">Counterparty mode</label>
-            <select id="mode">
-              <option value="noisy">Noisy threshold</option>
-              <option value="adversarial">Adversarial informed</option>
-            </select>
-          </div>
-        </div>
-
-        <div id="rangeSettings" class="grid-two" style="margin-top: 12px;">
-          <div>
-            <label for="minValue">Min true value</label>
-            <input id="minValue" type="number" min="-10000" max="10000" step="1" value="1">
-          </div>
-          <div>
-            <label for="maxValue">Max true value</label>
-            <input id="maxValue" type="number" min="-10000" max="10000" step="1" value="100">
-          </div>
-        </div>
-
-        <div id="diceSettings" class="grid-two" style="margin-top: 12px; display: none;">
-          <div>
-            <label for="diceCount">Dice count</label>
-            <input id="diceCount" type="number" min="1" max="20" step="1" value="2">
-          </div>
-          <div>
-            <label for="diceSides">Sides per die</label>
-            <input id="diceSides" type="number" min="2" max="100" step="1" value="6">
-          </div>
-        </div>
-
-        <div class="grid-two" style="margin-top: 12px;">
-          <div>
-            <label for="turnLimit">Turns per round</label>
-            <input id="turnLimit" type="number" min="1" max="100" step="1" value="10">
-          </div>
-          <div>
-            <label for="positionLimit">Position limit (+/-)</label>
-            <input id="positionLimit" type="number" min="1" max="100" step="1" value="10">
-          </div>
-        </div>
-
-        <button id="newRoundButton" style="margin-top: 14px;">Start New Round</button>
-      </section>
-
-      <section class="panel">
-        <h2>Quote</h2>
-        <div class="quote-row">
-          <div>
-            <label for="bidInput">Bid</label>
-            <input id="bidInput" type="number" step="0.01" value="45">
-          </div>
-          <div>
-            <label for="askInput">Ask</label>
-            <input id="askInput" type="number" step="0.01" value="55">
-          </div>
-          <button id="submitQuoteButton">Submit Quote</button>
-        </div>
-
-        <div class="quote-stats">
-          <span class="pill">Spread: <strong id="spreadPreview">10.00</strong></span>
-          <span class="pill">Mid: <strong id="midPreview">50.00</strong></span>
-        </div>
-      </section>
-
-      <section class="panel">
-        <h2>Status</h2>
-        <div id="message" class="message">Start a round, then submit a two-sided market.</div>
-      </section>
-    </aside>
-
-    <section class="panel stack">
-      <div>
-        <h2>Risk And P&L</h2>
-        <div style="margin-bottom: 12px;">
-          <span id="activeModeBadge" class="mode-badge">Mode: Noisy threshold</span>
-        </div>
-        <div class="metric-grid">
-          <div class="metric">
-            <span>Turn</span>
-            <strong id="turnCounter">0 / 10</strong>
-          </div>
-          <div class="metric">
-            <span>Inventory</span>
-            <strong id="inventory">0</strong>
-          </div>
-          <div class="metric">
-            <span>Position limits</span>
-            <strong id="limits">-10 / +10</strong>
-          </div>
-          <div class="metric">
-            <span>Average entry</span>
-            <strong id="avgEntry">-</strong>
-          </div>
-          <div class="metric">
-            <span>Cash</span>
-            <strong id="cash">0.00</strong>
-          </div>
-          <div class="metric">
-            <span>Realized P&L</span>
-            <strong id="realizedPnl">0.00</strong>
-          </div>
-          <div class="metric">
-            <span>Unrealized P&L</span>
-            <strong id="unrealizedPnl">Hidden</strong>
-          </div>
-          <div class="metric">
-            <span>True value</span>
-            <strong id="trueValue">Hidden</strong>
-          </div>
-          <div class="metric">
-            <span>Total marked P&L</span>
-            <strong id="totalPnl">Hidden</strong>
-          </div>
-        </div>
-      </div>
-
-      <div id="roundResult" class="round-result">
-        <h2>Round Breakdown</h2>
-        <div class="grid-three">
-          <div class="metric">
-            <span>True value</span>
-            <strong id="breakTrueValue">-</strong>
-          </div>
-          <div class="metric">
-            <span>Final inventory</span>
-            <strong id="breakInventory">0</strong>
-          </div>
-          <div class="metric">
-            <span>Marked value</span>
-            <strong id="breakMarkedValue">0.00</strong>
-          </div>
-          <div class="metric">
-            <span>Final cash</span>
-            <strong id="breakCash">0.00</strong>
-          </div>
-          <div class="metric">
-            <span>Realized P&L</span>
-            <strong id="breakRealized">0.00</strong>
-          </div>
-          <div class="metric">
-            <span>Total P&L</span>
-            <strong id="breakTotal">0.00</strong>
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <h2>Turn Log</h2>
-        <div class="log" id="logWrap">
-          <div class="empty-log">No turns yet.</div>
-        </div>
-      </div>
-    </section>
+    <section id="settingsScreen" class="screen active card"></section>
+    <section id="scenarioScreen" class="screen card"></section>
+    <section id="openingScreen" class="screen card"></section>
+    <section id="tradingScreen" class="screen card"></section>
+    <section id="debriefScreen" class="screen card"></section>
   </main>
 
   <script>
     "use strict";
 
-    const MODE_LABELS = {
-      noisy: "Noisy threshold",
-      adversarial: "Adversarial informed"
+    // =========================
+    // Proxy configuration
+    // =========================
+    // Deploy api/openai-proxy.js to Vercel, then paste that function URL here.
+    const PROXY_URL = "";
+
+    // =========================
+    // Built-in scenario catalog
+    // =========================
+    const SCENARIOS = [
+      { id: "cars-tokyo", title: "Cars Tokyo", prompt: "How many registered passenger cars are there in Tokyo?", type: "Guesstimate", fallback: 3200000, basis: "Population, household car ownership, and metro density imply several million vehicles." },
+      { id: "coffee-london", title: "Coffee Shops London", prompt: "How many coffee shops are there in London?", type: "Guesstimate", fallback: 3600, basis: "A large city with many high streets and stations plausibly supports a few thousand shops." },
+      { id: "roller-coasters", title: "Global Roller Coasters", prompt: "How many operating roller coasters are there in the world?", type: "Fact", fallback: 6000, basis: "Theme parks worldwide commonly host multiple coasters, totaling several thousand." },
+      { id: "houses-sf", title: "Houses San Francisco", prompt: "How many housing units are there in San Francisco?", type: "Fact", fallback: 410000, basis: "Population near 800k and small household sizes imply about four hundred thousand units." },
+      { id: "smartphones", title: "World Smartphones", prompt: "How many smartphones are currently in active use worldwide?", type: "Guesstimate", fallback: 6800000000, basis: "Global population and high smartphone penetration imply several billion devices." },
+      { id: "bikes-amsterdam", title: "Bikes Amsterdam", prompt: "How many bicycles are there in Amsterdam?", type: "Fact", fallback: 900000, basis: "Bike ownership around one per resident puts the count near one million." },
+      { id: "global-flights", title: "Global Flights", prompt: "How many commercial passenger flights happen worldwide in one day?", type: "Guesstimate", fallback: 100000, basis: "Large airports, regional routes, and airline schedules imply roughly one hundred thousand daily flights." },
+      { id: "us-pizza", title: "US Pizza Shops", prompt: "How many pizza restaurants are there in the United States?", type: "Fact", fallback: 75000, basis: "Tens of thousands of chain and independent locations operate nationally." },
+      { id: "nyc-taxis", title: "NYC Taxis", prompt: "How many licensed yellow taxis are there in New York City?", type: "Fact", fallback: 13500, basis: "Medallion taxi counts have historically been around the low tens of thousands." },
+      { id: "india-atms", title: "ATMs India", prompt: "How many ATMs are there in India?", type: "Fact", fallback: 220000, basis: "Banking infrastructure across cities and towns supports a few hundred thousand machines." },
+      { id: "uk-dogs", title: "Dogs United Kingdom", prompt: "How many pet dogs are there in the United Kingdom?", type: "Guesstimate", fallback: 13000000, basis: "Households, pet ownership rates, and multi-dog homes imply low tens of millions." },
+      { id: "us-gas", title: "US Gas Stations", prompt: "How many gas stations are there in the United States?", type: "Fact", fallback: 145000, basis: "The national retail fueling network is in the low hundreds of thousands." },
+      { id: "paris-hotels", title: "Hotels Paris", prompt: "How many hotel rooms are there in Paris?", type: "Guesstimate", fallback: 85000, basis: "Tourism capacity across thousands of hotels implies tens of thousands of rooms." },
+      { id: "global-airports", title: "Global Airports", prompt: "How many airports are there in the world?", type: "Fact", fallback: 40000, basis: "Including small and regional airfields makes the global count tens of thousands." },
+      { id: "china-students", title: "College Students China", prompt: "How many university students are there in China?", type: "Guesstimate", fallback: 47000000, basis: "Large youth cohorts and high tertiary enrollment imply many tens of millions." },
+      { id: "us-babies", title: "US Births Per Day", prompt: "How many babies are born in the United States per day?", type: "Guesstimate", fallback: 10000, basis: "Annual births around a few million divide to roughly ten thousand daily." },
+      { id: "world-elevators", title: "World Elevators", prompt: "How many elevators are installed worldwide?", type: "Guesstimate", fallback: 20000000, basis: "Urban high-rise buildings and commercial stock imply tens of millions of units." },
+      { id: "amazon-packages", title: "Amazon Packages Daily", prompt: "How many packages does Amazon deliver globally per day?", type: "Guesstimate", fallback: 6000000, basis: "Annual order volume divided by days gives a multi-million daily figure." }
+    ];
+
+    const SPREADS = {
+      predefined: { label: "Predefined", pct: 0.15 },
+      five: { label: "5% spread", pct: 0.05 },
+      ten: { label: "10% spread", pct: 0.10 },
+      twenty: { label: "20% spread", pct: 0.20 }
     };
 
-    const ACTION_LABELS = {
-      hitBid: "Trader hit bid",
-      liftAsk: "Trader lifted ask",
-      pass: "Trader passed",
-      blocked: "Trade blocked"
-    };
-
-    // Central game-state object. Most values are reset by startNewRound().
-    const gameState = {
-      active: false,
-      ended: false,
+    // =========================
+    // Game-state object
+    // =========================
+    const state = {
+      screen: "settings",
+      settings: {
+        spreadType: "ten",
+        traderLanguage: false,
+        technicalQuestions: "mix",
+        questionType: "guesstimate",
+        traderMode: "adversarial"
+      },
+      scenarioCache: {},
+      scenario: null,
+      round: 0,
+      maxRounds: 7,
+      seed: 1,
       trueValue: null,
-      turn: 0,
-      turnLimit: 10,
-      mode: "noisy",
-      valueModel: "range",
-      minValue: 1,
-      maxValue: 100,
-      diceCount: 2,
-      diceSides: 6,
-      positionLimit: 10,
+      trueLower: null,
+      trueUpper: null,
+      openingBid: null,
+      openingAsk: null,
+      lastBid: null,
+      lastAsk: null,
+      lastBidVol: 1,
+      lastAskVol: 1,
       position: 0,
       avgEntry: 0,
       cash: 0,
       realizedPnl: 0,
-      lastBid: null,
-      lastAsk: null,
-      log: []
+      tradeLog: [],
+      currentTraderAction: null,
+      currentTraderMessage: "",
+      hint: "",
+      loading: false,
+      message: ""
     };
 
-    const els = {
-      valueModel: document.getElementById("valueModel"),
-      mode: document.getElementById("mode"),
-      minValue: document.getElementById("minValue"),
-      maxValue: document.getElementById("maxValue"),
-      diceCount: document.getElementById("diceCount"),
-      diceSides: document.getElementById("diceSides"),
-      turnLimit: document.getElementById("turnLimit"),
-      positionLimit: document.getElementById("positionLimit"),
-      rangeSettings: document.getElementById("rangeSettings"),
-      diceSettings: document.getElementById("diceSettings"),
-      newRoundButton: document.getElementById("newRoundButton"),
-      bidInput: document.getElementById("bidInput"),
-      askInput: document.getElementById("askInput"),
-      submitQuoteButton: document.getElementById("submitQuoteButton"),
-      spreadPreview: document.getElementById("spreadPreview"),
-      midPreview: document.getElementById("midPreview"),
-      message: document.getElementById("message"),
-      activeModeBadge: document.getElementById("activeModeBadge"),
-      turnCounter: document.getElementById("turnCounter"),
-      inventory: document.getElementById("inventory"),
-      limits: document.getElementById("limits"),
-      avgEntry: document.getElementById("avgEntry"),
-      cash: document.getElementById("cash"),
-      realizedPnl: document.getElementById("realizedPnl"),
-      unrealizedPnl: document.getElementById("unrealizedPnl"),
-      trueValue: document.getElementById("trueValue"),
-      totalPnl: document.getElementById("totalPnl"),
-      roundResult: document.getElementById("roundResult"),
-      breakTrueValue: document.getElementById("breakTrueValue"),
-      breakInventory: document.getElementById("breakInventory"),
-      breakMarkedValue: document.getElementById("breakMarkedValue"),
-      breakCash: document.getElementById("breakCash"),
-      breakRealized: document.getElementById("breakRealized"),
-      breakTotal: document.getElementById("breakTotal"),
-      logWrap: document.getElementById("logWrap")
+    const screens = {
+      settings: document.getElementById("settingsScreen"),
+      scenario: document.getElementById("scenarioScreen"),
+      opening: document.getElementById("openingScreen"),
+      trading: document.getElementById("tradingScreen"),
+      debrief: document.getElementById("debriefScreen")
     };
 
-    function money(value) {
-      return Number(value).toFixed(2);
+    // =========================
+    // Utility and seeded randomness
+    // =========================
+    function fmt(n) {
+      if (!Number.isFinite(n)) return "-";
+      const abs = Math.abs(n);
+      if (abs >= 1000000000) return (n / 1000000000).toFixed(2) + "B";
+      if (abs >= 1000000) return (n / 1000000).toFixed(2) + "M";
+      if (abs >= 10000) return Math.round(n).toLocaleString();
+      return Number(n).toFixed(2);
     }
 
-    function signedClass(value) {
-      if (value > 0) return "profit";
-      if (value < 0) return "loss";
+    function cls(n) {
+      if (n > 0) return "profit";
+      if (n < 0) return "loss";
       return "";
     }
 
-    function setMessage(text, type) {
-      els.message.textContent = text;
-      els.message.className = "message" + (type ? " " + type : "");
+    function hashString(text) {
+      let h = 2166136261;
+      for (let i = 0; i < text.length; i += 1) {
+        h ^= text.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+      }
+      return h >>> 0;
     }
 
-    function readInteger(input, fallback) {
-      const value = Number.parseInt(input.value, 10);
-      return Number.isFinite(value) ? value : fallback;
+    function seededRandom() {
+      state.seed = Math.imul(1664525, state.seed) + 1013904223;
+      return (state.seed >>> 0) / 4294967296;
     }
 
-    function readNumber(input) {
-      return Number.parseFloat(input.value);
+    function numeric(value) {
+      const n = Number.parseFloat(value);
+      return Number.isFinite(n) ? n : null;
     }
 
-    function drawTrueValue() {
-      if (gameState.valueModel === "dice") {
-        let total = 0;
-        for (let i = 0; i < gameState.diceCount; i += 1) {
-          total += 1 + Math.floor(Math.random() * gameState.diceSides);
-        }
-        return total;
-      }
-
-      const min = Math.ceil(gameState.minValue);
-      const max = Math.floor(gameState.maxValue);
-      return min + Math.floor(Math.random() * (max - min + 1));
+    function setScreen(name) {
+      state.screen = name;
+      Object.keys(screens).forEach((key) => screens[key].classList.toggle("active", key === name));
+      render();
     }
 
-    function validateSettings() {
-      const valueModel = els.valueModel.value;
-      const minValue = readInteger(els.minValue, 1);
-      const maxValue = readInteger(els.maxValue, 100);
-      const diceCount = readInteger(els.diceCount, 2);
-      const diceSides = readInteger(els.diceSides, 6);
-      const turnLimit = readInteger(els.turnLimit, 10);
-      const positionLimit = readInteger(els.positionLimit, 10);
-
-      if (valueModel === "range" && maxValue <= minValue) {
-        return { ok: false, message: "Max true value must be greater than min true value." };
-      }
-
-      if (valueModel === "dice" && (diceCount < 1 || diceSides < 2)) {
-        return { ok: false, message: "Dice mode needs at least 1 die with at least 2 sides." };
-      }
-
-      if (turnLimit < 1) {
-        return { ok: false, message: "Turns per round must be at least 1." };
-      }
-
-      if (positionLimit < 1) {
-        return { ok: false, message: "Position limit must be at least 1." };
-      }
-
-      return {
-        ok: true,
-        settings: {
-          valueModel,
-          minValue,
-          maxValue,
-          diceCount,
-          diceSides,
-          turnLimit,
-          positionLimit,
-          mode: els.mode.value
-        }
-      };
+    function showMessage(text, tone) {
+      if (!text) return "";
+      return '<div class="message ' + (tone || "") + '">' + escapeHtml(text) + "</div>";
     }
 
-    function startNewRound() {
-      const validation = validateSettings();
-      if (!validation.ok) {
-        setMessage(validation.message, "error");
+    function escapeHtml(text) {
+      return String(text).replace(/[&<>"']/g, (ch) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+      }[ch]));
+    }
+
+    // =========================
+    // Proxy-call helpers
+    // =========================
+    async function proxyRequest(payload) {
+      if (!PROXY_URL) throw new Error("Set PROXY_URL at the top of index.html after deploying the Vercel function.");
+      const response = await fetch(PROXY_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) throw new Error("Proxy request failed with status " + response.status);
+      return response.json();
+    }
+
+    async function loadScenario(scenario) {
+      state.loading = true;
+      state.message = "Loading scenario from proxy...";
+      renderScenarioScreen();
+
+      if (state.scenarioCache[scenario.id]) {
+        state.loading = false;
+        applyScenario(state.scenarioCache[scenario.id]);
         return;
       }
 
-      Object.assign(gameState, validation.settings, {
-        active: true,
-        ended: false,
-        trueValue: null,
-        turn: 0,
+      let normalized;
+      let warning = "";
+      try {
+        const data = await proxyRequest({ action: "scenario", scenario });
+        normalized = normalizeScenarioResponse(scenario, data);
+      } catch (err) {
+        normalized = normalizeScenarioResponse(scenario, {
+          question: scenario.prompt + " Please make a confidence interval of 95%.",
+          trueValue: scenario.fallback,
+          justification: scenario.basis
+        });
+        warning = "Proxy unavailable, using the built-in cached estimate. " + err.message;
+      } finally {
+        state.loading = false;
+      }
+
+      state.scenarioCache[scenario.id] = normalized;
+      applyScenario(normalized);
+      if (warning) {
+        state.message = warning;
+        renderOpeningScreen();
+      }
+    }
+
+    function normalizeScenarioResponse(base, data) {
+      const trueValue = Math.max(1, Number(data.trueValue || base.fallback));
+      return {
+        id: base.id,
+        title: base.title,
+        type: base.type,
+        question: String(data.question || base.prompt) + (String(data.question || "").includes("95%") ? "" : " Please make a confidence interval of 95%."),
+        trueValue,
+        trueLower: Math.max(0, Number(data.trueLower || trueValue * 0.9)),
+        trueUpper: Math.max(trueValue, Number(data.trueUpper || trueValue * 1.1)),
+        justification: String(data.justification || base.basis)
+      };
+    }
+
+    function applyScenario(scenarioData) {
+      state.scenario = scenarioData;
+      state.trueValue = scenarioData.trueValue;
+      state.trueLower = scenarioData.trueLower;
+      state.trueUpper = scenarioData.trueUpper;
+      state.seed = hashString(scenarioData.id + ":" + scenarioData.trueValue + ":" + state.settings.traderMode);
+      resetTradingState();
+      setScreen("opening");
+    }
+
+    async function getHint() {
+      if (!state.scenario) return;
+      state.loading = true;
+      state.hint = "Loading hint...";
+      renderOpeningScreen();
+      try {
+        const data = await proxyRequest({
+          action: "hint",
+          scenario: { id: state.scenario.id, title: state.scenario.title, question: state.scenario.question }
+        });
+        state.hint = String(data.hint || "Break it into population, relevant rate, and units per person.");
+      } catch (err) {
+        state.hint = "Break the estimate into a population base, a participation or ownership rate, and units per participant. Do not anchor on a single guess.";
+      } finally {
+        state.loading = false;
+        renderOpeningScreen();
+      }
+    }
+
+    // =========================
+    // Deterministic trader-decision function
+    // =========================
+    function decideTrader(mode, bid, ask) {
+      if (mode === "random") {
+        return seededRandom() < 0.5 ? "buy" : "sell";
+      }
+
+      const buyPain = ask - state.trueValue;      // Player sells at ask, then marks at true value.
+      const sellPain = state.trueValue - bid;     // Player buys at bid, then marks at true value.
+      return buyPain < sellPain ? "buy" : "sell";
+    }
+
+    function traderText(action) {
+      const side = action === "buy" ? "I will buy." : "I will sell.";
+      const spread = Math.round(getMaxSpreadPct() * 100);
+      if (!state.settings.traderLanguage) {
+        return side + " Next market max spread: " + spread + "%.";
+      }
+      return side + " Please make me a next market with a maximum spread of " + spread + "%.";
+    }
+
+    // =========================
+    // P&L and position engine
+    // =========================
+    function resetTradingState() {
+      Object.assign(state, {
+        round: 0,
+        openingBid: null,
+        openingAsk: null,
+        lastBid: null,
+        lastAsk: null,
+        lastBidVol: 1,
+        lastAskVol: 1,
         position: 0,
         avgEntry: 0,
         cash: 0,
         realizedPnl: 0,
-        lastBid: null,
-        lastAsk: null,
-        log: []
+        tradeLog: [],
+        currentTraderAction: null,
+        currentTraderMessage: "",
+        hint: "",
+        message: ""
       });
-
-      gameState.trueValue = drawTrueValue();
-      setSettingsDisabled(true);
-      setMessage("New round started. True value is hidden until the round ends.", "good");
-      render();
     }
 
-    function setSettingsDisabled(disabled) {
-      els.valueModel.disabled = disabled;
-      els.mode.disabled = disabled;
-      els.minValue.disabled = disabled;
-      els.maxValue.disabled = disabled;
-      els.diceCount.disabled = disabled;
-      els.diceSides.disabled = disabled;
-      els.turnLimit.disabled = disabled;
-      els.positionLimit.disabled = disabled;
+    function applyTrade(action, volume, price) {
+      const signed = action === "buy" ? -volume : volume;
+      state.cash += action === "buy" ? price * volume : -price * volume;
+
+      if (signed > 0) addLong(volume, price);
+      if (signed < 0) addShort(volume, price);
     }
 
-    // Single counterparty decision function. Add new modes by branching on mode.
-    function decideCounterpartyAction(mode, bid, ask, trueValue) {
-      if (mode === "adversarial") {
-        if (ask < trueValue) return { action: "liftAsk", reason: "ask below true value" };
-        if (bid > trueValue) return { action: "hitBid", reason: "bid above true value" };
-        return { action: "pass", reason: "quote brackets true value" };
-      }
-
-      if (mode === "noisy") {
-        const quoteIsLow = ask < trueValue;
-        const quoteIsHigh = bid > trueValue;
-        const bracketsValue = bid <= trueValue && ask >= trueValue;
-        const roll = Math.random();
-
-        if (quoteIsLow) {
-          return roll < 0.85
-            ? { action: "liftAsk", reason: "ask looks cheap" }
-            : { action: "pass", reason: "noise" };
-        }
-
-        if (quoteIsHigh) {
-          return roll < 0.85
-            ? { action: "hitBid", reason: "bid looks rich" }
-            : { action: "pass", reason: "noise" };
-        }
-
-        if (bracketsValue) {
-          if (roll < 0.10) return { action: "liftAsk", reason: "noise" };
-          if (roll < 0.20) return { action: "hitBid", reason: "noise" };
-          return { action: "pass", reason: "quote brackets likely value" };
-        }
-      }
-
-      return { action: "pass", reason: "unknown mode fallback" };
-    }
-
-    function canApplyAction(action) {
-      if (action === "hitBid" && gameState.position + 1 > gameState.positionLimit) {
-        return { ok: false, message: "Long limit would be breached." };
-      }
-
-      if (action === "liftAsk" && gameState.position - 1 < -gameState.positionLimit) {
-        return { ok: false, message: "Short limit would be breached." };
-      }
-
-      return { ok: true };
-    }
-
-    function applyTrade(action, price) {
-      if (action === "hitBid") {
-        gameState.cash -= price;
-
-        if (gameState.position >= 0) {
-          const newPosition = gameState.position + 1;
-          gameState.avgEntry = ((gameState.avgEntry * gameState.position) + price) / newPosition;
-          gameState.position = newPosition;
-        } else {
-          gameState.realizedPnl += gameState.avgEntry - price;
-          gameState.position += 1;
-          if (gameState.position === 0) gameState.avgEntry = 0;
-        }
-      }
-
-      if (action === "liftAsk") {
-        gameState.cash += price;
-
-        if (gameState.position <= 0) {
-          const oldSize = Math.abs(gameState.position);
-          const newSize = oldSize + 1;
-          gameState.avgEntry = ((gameState.avgEntry * oldSize) + price) / newSize;
-          gameState.position -= 1;
-        } else {
-          gameState.realizedPnl += price - gameState.avgEntry;
-          gameState.position -= 1;
-          if (gameState.position === 0) gameState.avgEntry = 0;
-        }
-      }
-    }
-
-    function submitQuote() {
-      if (!gameState.active || gameState.ended) {
-        setMessage("Start a new round before submitting quotes.", "warn");
+    function addLong(volume, price) {
+      if (state.position >= 0) {
+        const newPos = state.position + volume;
+        state.avgEntry = ((state.avgEntry * state.position) + price * volume) / newPos;
+        state.position = newPos;
         return;
       }
 
-      const bid = readNumber(els.bidInput);
-      const ask = readNumber(els.askInput);
+      const closing = Math.min(volume, Math.abs(state.position));
+      state.realizedPnl += (state.avgEntry - price) * closing;
+      state.position += closing;
+      const remaining = volume - closing;
+      if (state.position === 0) state.avgEntry = 0;
+      if (remaining > 0) {
+        state.position = remaining;
+        state.avgEntry = price;
+      }
+    }
 
-      if (!Number.isFinite(bid) || !Number.isFinite(ask)) {
-        setMessage("Enter numeric bid and ask values.", "error");
+    function addShort(volume, price) {
+      if (state.position <= 0) {
+        const oldSize = Math.abs(state.position);
+        const newSize = oldSize + volume;
+        state.avgEntry = ((state.avgEntry * oldSize) + price * volume) / newSize;
+        state.position -= volume;
         return;
       }
 
-      if (ask <= bid) {
-        setMessage("Rejected: ask must be greater than bid. Crossed or inverted quotes are not allowed.", "error");
-        return;
+      const closing = Math.min(volume, state.position);
+      state.realizedPnl += (price - state.avgEntry) * closing;
+      state.position -= closing;
+      const remaining = volume - closing;
+      if (state.position === 0) state.avgEntry = 0;
+      if (remaining > 0) {
+        state.position = -remaining;
+        state.avgEntry = price;
       }
-
-      gameState.lastBid = bid;
-      gameState.lastAsk = ask;
-
-      const decision = decideCounterpartyAction(gameState.mode, bid, ask, gameState.trueValue);
-      let action = decision.action;
-      let fillPrice = null;
-      let note = decision.reason;
-
-      if (action !== "pass") {
-        const limitCheck = canApplyAction(action);
-        if (!limitCheck.ok) {
-          note = limitCheck.message;
-          action = "blocked";
-        } else {
-          fillPrice = action === "hitBid" ? bid : ask;
-          applyTrade(action, fillPrice);
-        }
-      }
-
-      gameState.turn += 1;
-      gameState.log.unshift({
-        turn: gameState.turn,
-        bid,
-        ask,
-        spread: ask - bid,
-        mid: (bid + ask) / 2,
-        action,
-        fillPrice,
-        position: gameState.position,
-        cash: gameState.cash,
-        note
-      });
-
-      if (gameState.turn >= gameState.turnLimit) {
-        endRound();
-      } else {
-        setMessage(buildTurnMessage(action, fillPrice, note), action === "blocked" ? "warn" : "");
-      }
-
-      render();
     }
 
-    function buildTurnMessage(action, fillPrice, note) {
-      if (action === "pass") return "Trader passed: " + note + ".";
-      if (action === "blocked") return "Trade blocked by position limits: " + note;
-      return ACTION_LABELS[action] + " at " + money(fillPrice) + ": " + note + ".";
-    }
-
-    function endRound() {
-      gameState.active = false;
-      gameState.ended = true;
-      setSettingsDisabled(false);
-      setMessage("Round complete. True value and marked P&L are now revealed.", "good");
-    }
-
-    function getUnrealizedPnl() {
-      if (gameState.position > 0) {
-        return (gameState.trueValue - gameState.avgEntry) * gameState.position;
-      }
-
-      if (gameState.position < 0) {
-        return (gameState.avgEntry - gameState.trueValue) * Math.abs(gameState.position);
-      }
-
+    function unrealizedPnl() {
+      if (state.position > 0) return (state.trueValue - state.avgEntry) * state.position;
+      if (state.position < 0) return (state.avgEntry - state.trueValue) * Math.abs(state.position);
       return 0;
     }
 
-    function getTotalMarkedPnl() {
-      return gameState.cash + (gameState.position * gameState.trueValue);
+    function totalPnl() {
+      return state.cash + state.position * state.trueValue;
     }
 
-    function updateQuotePreview() {
-      const bid = readNumber(els.bidInput);
-      const ask = readNumber(els.askInput);
+    function breakEvenPrice() {
+      if (state.position === 0) return null;
+      return -state.cash / state.position;
+    }
 
-      if (!Number.isFinite(bid) || !Number.isFinite(ask) || ask <= bid) {
-        els.spreadPreview.textContent = "-";
-        els.midPreview.textContent = "-";
+    function getMaxSpreadPct() {
+      return SPREADS[state.settings.spreadType].pct;
+    }
+
+    function spreadPct(bid, ask) {
+      const mid = (bid + ask) / 2;
+      return mid > 0 ? (ask - bid) / mid : Infinity;
+    }
+
+    function hasConverged(bid, ask) {
+      return bid >= state.trueLower && ask <= state.trueUpper;
+    }
+
+    // =========================
+    // Actions
+    // =========================
+    function saveSettings() {
+      state.settings.spreadType = document.getElementById("spreadType").value;
+      state.settings.traderLanguage = document.getElementById("traderLanguage").value === "yes";
+      state.settings.technicalQuestions = document.getElementById("technicalQuestions").value;
+      state.settings.questionType = document.getElementById("questionType").value;
+      state.settings.traderMode = document.getElementById("traderMode").value;
+      state.message = "";
+      setScreen("scenario");
+    }
+
+    function submitOpeningMarket() {
+      const bid = numeric(document.getElementById("openingBid").value);
+      const ask = numeric(document.getElementById("openingAsk").value);
+      if (bid === null || ask === null || ask <= bid) {
+        state.message = "Enter a valid opening market with ask greater than bid.";
+        renderOpeningScreen();
+        return;
+      }
+      state.openingBid = bid;
+      state.openingAsk = ask;
+      state.lastBid = bid;
+      state.lastAsk = ask;
+      state.lastBidVol = 1;
+      state.lastAskVol = 1;
+      startNextRound();
+    }
+
+    function startNextRound() {
+      state.round += 1;
+      const action = decideTrader(state.settings.traderMode, state.lastBid, state.lastAsk);
+      const volume = action === "buy" ? state.lastAskVol : state.lastBidVol;
+      const price = action === "buy" ? state.lastAsk : state.lastBid;
+      applyTrade(action, volume, price);
+      state.tradeLog.unshift({
+        round: state.round,
+        action,
+        volume,
+        price,
+        bid: state.lastBid,
+        ask: state.lastAsk,
+        position: state.position,
+        cash: state.cash,
+        pnl: totalPnl()
+      });
+      state.currentTraderAction = action;
+      state.currentTraderMessage = traderText(action);
+      state.message = "";
+      setScreen("trading");
+    }
+
+    function submitRoundMarket() {
+      const bidVol = numeric(document.getElementById("bidVol").value) || 1;
+      const bid = numeric(document.getElementById("bidPrice").value);
+      const askVol = numeric(document.getElementById("askVol").value) || 1;
+      const ask = numeric(document.getElementById("askPrice").value);
+
+      if (bid === null || ask === null || ask <= bid) {
+        state.message = "Ask must be greater than bid.";
+        renderTradingScreen();
+        return;
+      }
+      if (bidVol <= 0 || askVol <= 0) {
+        state.message = "Bid and ask volumes must be positive.";
+        renderTradingScreen();
+        return;
+      }
+      if (spreadPct(bid, ask) > getMaxSpreadPct() + 0.0000001) {
+        state.message = "Spread is too wide. Maximum allowed is " + Math.round(getMaxSpreadPct() * 100) + "% of mid.";
+        renderTradingScreen();
         return;
       }
 
-      els.spreadPreview.textContent = money(ask - bid);
-      els.midPreview.textContent = money((bid + ask) / 2);
+      state.lastBid = bid;
+      state.lastAsk = ask;
+      state.lastBidVol = bidVol;
+      state.lastAskVol = askVol;
+
+      if (hasConverged(bid, ask) || state.round >= state.maxRounds) {
+        state.message = hasConverged(bid, ask)
+          ? "Stopped early: your quote converged inside the true range."
+          : "Seven rounds completed.";
+        setScreen("debrief");
+      } else {
+        startNextRound();
+      }
     }
 
+    // =========================
+    // Screen render functions
+    // =========================
     function render() {
-      const roundIsRevealed = gameState.ended;
-      const unrealized = gameState.trueValue === null ? 0 : getUnrealizedPnl();
-      const totalMarked = gameState.trueValue === null ? 0 : getTotalMarkedPnl();
-      const markedValue = gameState.trueValue === null ? 0 : gameState.position * gameState.trueValue;
-
-      els.activeModeBadge.textContent = "Mode: " + MODE_LABELS[gameState.mode];
-      els.turnCounter.textContent = gameState.turn + " / " + gameState.turnLimit;
-      els.inventory.textContent = String(gameState.position);
-      els.limits.textContent = "-" + gameState.positionLimit + " / +" + gameState.positionLimit;
-      els.avgEntry.textContent = gameState.position === 0 ? "-" : money(gameState.avgEntry);
-      els.cash.textContent = money(gameState.cash);
-      els.cash.className = signedClass(gameState.cash);
-      els.realizedPnl.textContent = money(gameState.realizedPnl);
-      els.realizedPnl.className = signedClass(gameState.realizedPnl);
-      els.unrealizedPnl.textContent = roundIsRevealed ? money(unrealized) : "Hidden";
-      els.unrealizedPnl.className = roundIsRevealed ? signedClass(unrealized) : "";
-      els.trueValue.textContent = roundIsRevealed ? String(gameState.trueValue) : "Hidden";
-      els.totalPnl.textContent = roundIsRevealed ? money(totalMarked) : "Hidden";
-      els.totalPnl.className = roundIsRevealed ? signedClass(totalMarked) : "";
-
-      els.submitQuoteButton.disabled = !gameState.active || gameState.ended;
-      els.newRoundButton.textContent = gameState.active ? "Restart Round" : "Start New Round";
-
-      els.roundResult.classList.toggle("visible", roundIsRevealed);
-      els.breakTrueValue.textContent = roundIsRevealed ? String(gameState.trueValue) : "-";
-      els.breakInventory.textContent = String(gameState.position);
-      els.breakMarkedValue.textContent = money(markedValue);
-      els.breakCash.textContent = money(gameState.cash);
-      els.breakRealized.textContent = money(gameState.realizedPnl);
-      els.breakRealized.className = signedClass(gameState.realizedPnl);
-      els.breakTotal.textContent = money(totalMarked);
-      els.breakTotal.className = signedClass(totalMarked);
-
-      renderLog();
-      updateQuotePreview();
+      renderSettingsScreen();
+      renderScenarioScreen();
+      renderOpeningScreen();
+      renderTradingScreen();
+      renderDebriefScreen();
     }
 
-    function renderLog() {
-      if (gameState.log.length === 0) {
-        els.logWrap.innerHTML = '<div class="empty-log">No turns yet.</div>';
-        return;
+    function renderSettingsScreen() {
+      screens.settings.innerHTML = `
+        <h2>Settings</h2>
+        <div class="grid">
+          <div>
+            <label for="spreadType">Spread Type</label>
+            <select id="spreadType">
+              <option value="predefined">Predefined</option>
+              <option value="five">5% spread</option>
+              <option value="ten">10% spread</option>
+              <option value="twenty">20% spread</option>
+            </select>
+          </div>
+          <div>
+            <label for="traderLanguage">Trader Language</label>
+            <select id="traderLanguage">
+              <option value="no">No</option>
+              <option value="yes">Yes</option>
+            </select>
+          </div>
+          <div>
+            <label for="technicalQuestions">Technical Questions</label>
+            <select id="technicalQuestions">
+              <option value="mix">Mix</option>
+              <option value="breakeven">Break-even</option>
+              <option value="pnl">PnL</option>
+            </select>
+          </div>
+          <div>
+            <label for="questionType">Question Type</label>
+            <select id="questionType">
+              <option value="fact">Fact</option>
+              <option value="guesstimate">Guesstimate</option>
+            </select>
+          </div>
+          <div>
+            <label for="traderMode">Trader Mode</label>
+            <select id="traderMode">
+              <option value="adversarial">Adversarial / informed</option>
+              <option value="random">Random / noisy</option>
+            </select>
+          </div>
+        </div>
+        <div class="toolbar">
+          <span class="pill">All game mechanics run locally in deterministic JavaScript.</span>
+          <button style="max-width: 260px;" onclick="saveSettings()">Proceed to Scenarios</button>
+        </div>
+      `;
+      document.getElementById("spreadType").value = state.settings.spreadType;
+      document.getElementById("traderLanguage").value = state.settings.traderLanguage ? "yes" : "no";
+      document.getElementById("technicalQuestions").value = state.settings.technicalQuestions;
+      document.getElementById("questionType").value = state.settings.questionType;
+      document.getElementById("traderMode").value = state.settings.traderMode;
+    }
+
+    function renderScenarioScreen() {
+      const type = state.settings.questionType === "fact" ? "Fact" : "Guesstimate";
+      const list = SCENARIOS.filter((s) => s.type === type);
+      screens.scenario.innerHTML = `
+        <h2>Scenario Selection</h2>
+        <p>Select a scenario. The app asks the proxy for the question, true value, and a one-line justification, then caches that value for this game.</p>
+        <div class="scenario-grid">
+          ${list.map((s) => `
+            <button class="scenario-button" onclick="loadScenarioById('${s.id}')" ${state.loading ? "disabled" : ""}>
+              <strong>${escapeHtml(s.title)}</strong>
+              <span>${escapeHtml(s.type)}</span>
+            </button>
+          `).join("")}
+        </div>
+        ${showMessage(state.message, state.message.includes("unavailable") ? "warn" : "")}
+        <div class="toolbar">
+          <button class="secondary" style="max-width: 180px;" onclick="setScreen('settings')">Back</button>
+        </div>
+      `;
+    }
+
+    function loadScenarioById(id) {
+      const scenario = SCENARIOS.find((s) => s.id === id);
+      if (scenario) loadScenario(scenario);
+    }
+
+    function renderOpeningScreen() {
+      if (!state.scenario) return;
+      screens.opening.innerHTML = `
+        <div class="split">
+          <div>
+            <span class="pill">${escapeHtml(state.scenario.title)}</span>
+            <h2 class="question">${escapeHtml(state.scenario.question)}</h2>
+            <p>Make your opening 95% confidence interval. The true value remains hidden until the debrief.</p>
+            <div class="grid">
+              <div>
+                <label for="openingBid">Bid / lower bound</label>
+                <input id="openingBid" type="number" step="any" placeholder="Lower bound">
+              </div>
+              <div>
+                <label for="openingAsk">Ask / upper bound</label>
+                <input id="openingAsk" type="number" step="any" placeholder="Upper bound">
+              </div>
+            </div>
+            <div class="toolbar">
+              <button onclick="submitOpeningMarket()" style="max-width: 240px;">Submit Opening Market</button>
+              <button class="hint" onclick="getHint()" style="max-width: 180px;" ${state.loading ? "disabled" : ""}>I need a hint</button>
+            </div>
+            ${showMessage(state.message, state.message.includes("Proxy unavailable") ? "warn" : "error")}
+          </div>
+          <aside>
+            <div class="hint-box">
+              <h3>Hint</h3>
+              <p>${escapeHtml(state.hint || "Ask for a decomposition hint if you want one. It will not reveal the true value.")}</p>
+            </div>
+          </aside>
+        </div>
+      `;
+    }
+
+    function renderTradingScreen() {
+      if (!state.scenario) return;
+      const maxPct = Math.round(getMaxSpreadPct() * 100);
+      screens.trading.innerHTML = `
+        <div class="split">
+          <div>
+            <div class="toolbar" style="margin-top: 0;">
+              <span class="pill">Round ${state.round} / ${state.maxRounds}</span>
+              <span class="pill">Mode: ${state.settings.traderMode === "adversarial" ? "Adversarial / informed" : "Random / noisy"}</span>
+              <span class="pill">Max spread: ${maxPct}%</span>
+            </div>
+            <h2>${escapeHtml(state.scenario.title)}</h2>
+            <p class="question">${escapeHtml(state.currentTraderMessage)}</p>
+            <div class="row">
+              <div><label for="bidVol">Bid Volume</label><input id="bidVol" type="number" min="0.01" step="any" value="1"></div>
+              <div><label for="bidPrice">Bid Price</label><input id="bidPrice" type="number" step="any" value="${state.lastBid || ""}"></div>
+              <div><label for="askVol">Ask Volume</label><input id="askVol" type="number" min="0.01" step="any" value="1"></div>
+              <div><label for="askPrice">Ask Price</label><input id="askPrice" type="number" step="any" value="${state.lastAsk || ""}"></div>
+            </div>
+            <div class="toolbar">
+              <button onclick="submitRoundMarket()" style="max-width: 220px;">Next</button>
+            </div>
+            ${showMessage(state.message, "error")}
+          </div>
+          ${renderRiskPanel()}
+        </div>
+      `;
+    }
+
+    function renderRiskPanel() {
+      return `
+        <aside class="card" style="box-shadow: none;">
+          <h2>Risk</h2>
+          <div class="grid">
+            <div class="metric"><span>Net position</span><strong>${fmt(state.position)}</strong></div>
+            <div class="metric"><span>Average entry</span><strong>${state.position === 0 ? "-" : fmt(state.avgEntry)}</strong></div>
+            <div class="metric"><span>Cash</span><strong class="${cls(state.cash)}">${fmt(state.cash)}</strong></div>
+            <div class="metric"><span>Running marked P&L</span><strong>Hidden</strong></div>
+          </div>
+          <h3 style="margin-top: 16px;">Trade Log</h3>
+          <div class="log">
+            ${state.tradeLog.length ? state.tradeLog.map((t) => `
+              <div class="log-entry">
+                <strong>R${t.round}: Trader ${t.action === "buy" ? "bought" : "sold"} ${fmt(t.volume)} @ ${fmt(t.price)}</strong><br>
+                <span>Quote ${fmt(t.bid)} / ${fmt(t.ask)}, pos ${fmt(t.position)}, cash ${fmt(t.cash)}</span>
+              </div>
+            `).join("") : "<p>No trades yet.</p>"}
+          </div>
+        </aside>
+      `;
+    }
+
+    function renderDebriefScreen() {
+      if (!state.scenario) return;
+      const be = breakEvenPrice();
+      const total = totalPnl();
+      screens.debrief.innerHTML = `
+        <h2>Final Debrief</h2>
+        ${showMessage(state.message, state.message.includes("converged") ? "good" : "warn")}
+        <div class="grid-3">
+          <div class="metric"><span>True value</span><strong>${fmt(state.trueValue)}</strong></div>
+          <div class="metric"><span>True range</span><strong>${fmt(state.trueLower)} - ${fmt(state.trueUpper)}</strong></div>
+          <div class="metric"><span>Final net position</span><strong>${fmt(state.position)}</strong></div>
+          <div class="metric"><span>Average entry</span><strong>${state.position === 0 ? "-" : fmt(state.avgEntry)}</strong></div>
+          <div class="metric"><span>Cash</span><strong class="${cls(state.cash)}">${fmt(state.cash)}</strong></div>
+          <div class="metric"><span>Break-even price</span><strong>${be === null ? "Flat" : fmt(be)}</strong></div>
+          <div class="metric"><span>Realized P&L</span><strong class="${cls(state.realizedPnl)}">${fmt(state.realizedPnl)}</strong></div>
+          <div class="metric"><span>Unrealized P&L</span><strong class="${cls(unrealizedPnl())}">${fmt(unrealizedPnl())}</strong></div>
+          <div class="metric"><span>Total P&L</span><strong class="${cls(total)}">${fmt(total)}</strong></div>
+        </div>
+        <p style="margin-top: 14px;">Justification: ${escapeHtml(state.scenario.justification)}</p>
+        ${renderQuestions(be, total)}
+        <div class="toolbar">
+          <button style="max-width: 180px;" onclick="setScreen('scenario')">Play Again</button>
+          <button class="secondary" style="max-width: 180px;" onclick="setScreen('settings')">Settings</button>
+        </div>
+      `;
+    }
+
+    function renderQuestions(be, total) {
+      const mode = state.settings.technicalQuestions;
+      const questions = [];
+      if (mode === "mix" || mode === "breakeven") {
+        questions.push({
+          id: "beAnswer",
+          q: "What is your break-even price on the remaining position?",
+          a: be === null ? "You are flat, so there is no remaining break-even price." : "Break-even = -cash / position = " + fmt(be) + "."
+        });
       }
-
-      const rows = gameState.log.map((entry) => {
-        const fill = entry.fillPrice === null ? "-" : money(entry.fillPrice);
-        return [
-          "<tr>",
-          "<td>" + entry.turn + "</td>",
-          "<td>" + money(entry.bid) + " / " + money(entry.ask) + "</td>",
-          "<td>" + money(entry.spread) + "</td>",
-          "<td>" + money(entry.mid) + "</td>",
-          "<td>" + ACTION_LABELS[entry.action] + "</td>",
-          "<td>" + fill + "</td>",
-          "<td>" + entry.position + "</td>",
-          "<td>" + money(entry.cash) + "</td>",
-          "<td>" + entry.note + "</td>",
-          "</tr>"
-        ].join("");
-      }).join("");
-
-      els.logWrap.innerHTML = [
-        "<table>",
-        "<thead>",
-        "<tr>",
-        "<th>Turn</th>",
-        "<th>Quote</th>",
-        "<th>Spread</th>",
-        "<th>Mid</th>",
-        "<th>Action</th>",
-        "<th>Fill</th>",
-        "<th>Position</th>",
-        "<th>Cash</th>",
-        "<th>Note</th>",
-        "</tr>",
-        "</thead>",
-        "<tbody>",
-        rows,
-        "</tbody>",
-        "</table>"
-      ].join("");
+      if (mode === "mix" || mode === "pnl") {
+        questions.push({
+          id: "pnlAnswer",
+          q: "Explain your P&L.",
+          a: "Total marked P&L = cash + position * true value = " + fmt(state.cash) + " + " + fmt(state.position) + " * " + fmt(state.trueValue) + " = " + fmt(total) + "."
+        });
+      }
+      return `
+        <div class="card" style="margin-top: 16px; box-shadow: none;">
+          <h2>Technical Questions</h2>
+          ${questions.map((item) => `
+            <div style="margin-bottom: 14px;">
+              <label for="${item.id}">${escapeHtml(item.q)}</label>
+              <textarea id="${item.id}" placeholder="Type your answer"></textarea>
+              <button class="secondary" style="max-width: 180px; margin-top: 8px;" onclick="document.getElementById('${item.id}Key').style.display='block'">Reveal Answer</button>
+              <div id="${item.id}Key" class="message good" style="display: none;">${escapeHtml(item.a)}</div>
+            </div>
+          `).join("")}
+        </div>
+      `;
     }
 
-    function syncValueModelControls() {
-      const diceMode = els.valueModel.value === "dice";
-      els.rangeSettings.style.display = diceMode ? "none" : "grid";
-      els.diceSettings.style.display = diceMode ? "grid" : "none";
-    }
-
-    els.newRoundButton.addEventListener("click", startNewRound);
-    els.submitQuoteButton.addEventListener("click", submitQuote);
-    els.bidInput.addEventListener("input", updateQuotePreview);
-    els.askInput.addEventListener("input", updateQuotePreview);
-    els.valueModel.addEventListener("change", syncValueModelControls);
-
-    syncValueModelControls();
     render();
   </script>
 </body>
