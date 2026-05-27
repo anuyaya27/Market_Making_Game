@@ -1,14 +1,51 @@
-# Market_Making_Game
-Market Making Game Simulator for Quant Trader/Research Interviews
+# Market Making Game
 
-## Deploy
+Fermi-estimation market making simulator for quant trading interview practice.
 
-- Frontend: deploy `index.html` directly to GitHub Pages. There is no build step.
-- Proxy: deploy `api/openai-proxy.js` as a Vercel serverless function.
-- Vercel environment variables:
-  - `OPENAI_API_KEY`: your OpenAI API key.
-  - `ALLOWED_ORIGIN`: your GitHub Pages origin, for example `https://yourname.github.io`.
-  - `OPENAI_MODEL`: optional, defaults to `gpt-4o-mini`.
-- After deploying to Vercel, paste the function URL into `const PROXY_URL = ""` near the top of the inline JavaScript in `index.html`.
-  - If the frontend is also hosted on Vercel, use `/api/openai-proxy`.
-  - If the frontend stays on GitHub Pages, use `https://your-vercel-app.vercel.app/api/openai-proxy`.
+## Deploy On Vercel
+
+This project is set up for Vercel zero-config hosting:
+
+- `index.html` at the repository root is served as the static frontend.
+- `api/openai-proxy.js` is served as the serverless route at `/api/openai-proxy`.
+
+No `vercel.json` is needed for this layout.
+
+Steps:
+
+1. Push this repository to GitHub.
+2. Import the repository into Vercel.
+3. In Vercel, open `Settings` -> `Environment Variables`.
+4. Add `OPENAI_API_KEY` with your OpenAI API key.
+5. Optionally add `OPENAI_MODEL`; if omitted, the proxy uses `gpt-4o-mini`.
+6. Deploy.
+
+The frontend calls the proxy with a same-origin relative URL:
+
+```js
+const PROXY_URL = "/api/openai-proxy";
+```
+
+## Local Development
+
+Install the Vercel CLI:
+
+```bash
+npm i -g vercel
+```
+
+Create `.env.local` in the project root:
+
+```text
+OPENAI_API_KEY=sk-...
+# Optional:
+OPENAI_MODEL=gpt-4o-mini
+```
+
+Run locally:
+
+```bash
+vercel dev
+```
+
+Open the local URL printed by the CLI. Vercel will serve both `index.html` and `/api/openai-proxy` from the same local origin.

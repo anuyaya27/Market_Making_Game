@@ -2,21 +2,9 @@
 //
 // Required Vercel environment variables:
 // - OPENAI_API_KEY: your OpenAI API key
-// - ALLOWED_ORIGIN: your GitHub Pages origin, for example https://yourname.github.io
 // - OPENAI_MODEL: optional, defaults to gpt-4o-mini
 
 const OPENAI_CHAT_COMPLETIONS_URL = "https://api.openai.com/v1/chat/completions";
-
-function setCors(req, res) {
-  const origin = req.headers.origin || "";
-  const allowed = process.env.ALLOWED_ORIGIN || "*";
-  const allowOrigin = allowed === "*" || origin === allowed ? allowed : allowed;
-
-  res.setHeader("Access-Control-Allow-Origin", allowOrigin);
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  res.setHeader("Vary", "Origin");
-}
 
 function buildPrompt(payload) {
   if (payload.action === "hint") {
@@ -78,13 +66,6 @@ async function callOpenAI(payload) {
 }
 
 export default async function handler(req, res) {
-  setCors(req, res);
-
-  if (req.method === "OPTIONS") {
-    res.status(204).end();
-    return;
-  }
-
   if (req.method !== "POST") {
     res.status(405).json({ error: "Use POST." });
     return;

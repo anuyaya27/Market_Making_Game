@@ -285,8 +285,8 @@
     // =========================
     // Proxy configuration
     // =========================
-    // Deploy api/openai-proxy.js to Vercel, then paste that function URL here.
-    const PROXY_URL = "";
+    // Same-origin Vercel API route.
+    const PROXY_URL = "/api/openai-proxy";
 
     // =========================
     // Built-in scenario catalog
@@ -516,16 +516,19 @@
     // =========================
     function decideTrader(mode, bid, ask) {
       if (mode === "random") {
-        return seededRandom() < 0.5 ? "buy" : "sell";
+        const roll = seededRandom();
+        if (roll < 0.4) return "buy";
+        if (roll < 0.8) return "sell";
+        return "pass";
       }
 
-      const buyPain = ask - state.trueValue;      // Player sells at ask, then marks at true value.
-      const sellPain = state.trueValue - bid;     // Player buys at bid, then marks at true value.
-      return buyPain < sellPain ? "buy" : "sell";
+      if (ask < state.trueValue) return "buy";
+      if (bid > state.trueValue) return "sell";
+      return "pass";
     }
 
     function traderText(action) {
-      const side = action === "buy" ? "I will buy." : "I will sell.";
+      const side = action === "buy" ? "I will buy." : action === "sell" ? "I will sell." : "I will pass.";
       const spread = Math.round(getMaxSpreadPct() * 100);
       if (!state.settings.traderLanguage) {
         return side + " Next market max spread: " + spread + "%.";
@@ -616,7 +619,8 @@
 
     function breakEvenPrice() {
       if (state.position === 0) return null;
-      return -state.cash / state.position;
+      if (state.position > 0) return state.avgEntry - state.realizedPnl / state.position;
+      return state.avgEntry + state.realizedPnl / Math.abs(state.position);
     }
 
     function getMaxSpreadPct() {
@@ -665,9 +669,11 @@
     function startNextRound() {
       state.round += 1;
       const action = decideTrader(state.settings.traderMode, state.lastBid, state.lastAsk);
-      const volume = action === "buy" ? state.lastAskVol : state.lastBidVol;
-      const price = action === "buy" ? state.lastAsk : state.lastBid;
-      applyTrade(action, volume, price);
+      const volume = action === "buy" ? state.lastAskVol : action === "sell" ? state.lastBidVol : 0;
+      const price = action === "buy" ? state.lastAsk : action === "sell" ? state.lastBid : null;
+      if (action !== "pass") {
+        applyTrade(action, volume, price);
+      }
       state.tradeLog.unshift({
         round: state.round,
         action,
@@ -891,7 +897,7 @@
           <div class="log">
             ${state.tradeLog.length ? state.tradeLog.map((t) => `
               <div class="log-entry">
-                <strong>R${t.round}: Trader ${t.action === "buy" ? "bought" : "sold"} ${fmt(t.volume)} @ ${fmt(t.price)}</strong><br>
+                <strong>R${t.round}: Trader ${t.action === "pass" ? "passed" : (t.action === "buy" ? "bought" : "sold") + " " + fmt(t.volume) + " @ " + fmt(t.price)}</strong><br>
                 <span>Quote ${fmt(t.bid)} / ${fmt(t.ask)}, pos ${fmt(t.position)}, cash ${fmt(t.cash)}</span>
               </div>
             `).join("") : "<p>No trades yet.</p>"}
